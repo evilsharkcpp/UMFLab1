@@ -1,0 +1,8 @@
+﻿  main.cpp
+C:\Users\asaul\source\repos\UMF_lab1\UMF_lab1\main.cpp(137,63): warning C4244: аргумент: преобразование "unsigned __int64" в "double", возможна потеря данных
+C:\Users\asaul\source\repos\UMF_lab1\UMF_lab1\main.cpp(158,1): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Users\asaul\source\repos\UMF_lab1\UMF_lab1\main.cpp(160,1): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Users\asaul\source\repos\UMF_lab1\UMF_lab1\main.cpp(167,1): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Users\asaul\source\repos\UMF_lab1\UMF_lab1\main.cpp(233,1): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Users\asaul\source\repos\UMF_lab1\UMF_lab1\main.cpp(237,1): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+  UMF_lab1.vcxproj -> C:\Users\asaul\source\repos\UMF_lab1\x64\Debug\UMF_lab1.exe
