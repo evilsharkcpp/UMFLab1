@@ -186,26 +186,9 @@ public:
                 index = GetNum(i - 1, j, n);
                 if (index >= 0)
                     A[level][index] = 2 / (hy_i * (hy_i + hy_ip));
-                /*if(index - n > 0)
-                    A[level][index - n] = 2 / (hy_ip * (hy_i + hy_ip));
-                if (index + n < n)
-                    A[level][index + n] = 2 / (hy_i * (hy_i + hy_ip));*/
+                
 
-                //A[GetNum(i, j, n) - 1][GetNum(i, j, n) - 1]
-                //A[level][level + 1] = 2 / (hy_i * (hy_i + hy_ip));
-
-               /* if (level + 1 < A.size())
-                {
-                    A[level][level + 1] = 2 / (hy_i * (hy_i + hy_ip));
-                    A[level + 1][level] = 2 / (hy_ip * (hy_i + hy_ip));
-                }
-                if (level + 2 < A.size())
-                {
-                    A[level][level + 2] = 2 / (hx_j * (hx_j + hx_jp));
-                    A[level + 2][level] = 2 / (hx_jp * (hx_j + hx_jp));
-                }*/
-
-                //F[level] = GetF(Grid[i][j].X, Grid[i][j].Y);
+                F[level] = GetF(Grid[i][j].X, Grid[i][j].Y);
                 level++;
             }
         }
@@ -232,6 +215,7 @@ public:
             {
                 int n = Grid.size();
                 int level = 0;
+                int count = A.size();
                 for (int i{ 1 }; i < n - 1; i++)
                 {
                     int m = Grid[i].size();
@@ -239,14 +223,36 @@ public:
                     {
                         if (!((int)Grid[i][j].X < start || (int)Grid[i][j].X > end || (int)Grid[i][0].Y != lock))
                         {
+
                             //Centre
                             if (Grid[i][j].Type == Sham)
                             {
+                                for (int k{ 0 }; k < count; k++)
+                                    A[level][k] = 0;
+                                A[level][GetNum(i, j, n)] = 1;
                                 F[level] = 0;
                             }
                             if (Grid[i][j].Type == Bound)
                             {
+                                for (int k{ 0 }; k < count; k++)
+                                    A[level][k] = 0;
+                                A[level][GetNum(i, j, n)] = 1;
                                 F[level] = value;
+                            }
+                            if (Grid[i][j].Type == Inner)
+                            {
+                                int index = GetNum(i, j - 1, n);
+                                if (index >= 0)
+                                    A[level][index];
+                                index = GetNum(i, j + 1, n);
+                                if (index < count)
+                                    A[level][index];
+                                index = GetNum(i + 1, j, n);
+                                if (index < count)
+                                    A[level][index];
+                                index = GetNum(i - 1, j, n);
+                                if (index >= 0)
+                                    A[level][index];
                             }
                         }
                         level++;
