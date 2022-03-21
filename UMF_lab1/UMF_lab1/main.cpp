@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
-
+#include <iomanip>
 using namespace std;
 
 enum Area
@@ -19,11 +19,15 @@ private:
     int M{ 0 };
     vector<int> Shift;
 public:
+    Matrix()
+    {
+
+    }
     Matrix(int n, int m, vector<int>& shift)
     {
-        n = n;
+        this->n = n;
         M = m;
-        Mat.resize(n, vector<double>(M));
+        Mat.resize(M, vector<double>(n));
         for (int i{ 0 }; i < shift.size(); i++)
             Shift.push_back(shift[i]);
     }
@@ -34,19 +38,22 @@ public:
         if (numDiag == 0)
         {
             while (Shift[k++] < 0);
-            return Mat[i][k - 1];
+            return Mat[k - 1][i];
         }
         int index{ -1 };
         for (int i{ 0 }; i < Shift.size(); i++)
             if (numDiag == Shift[i])
             {
-                index = i;
+                index = (numDiag < 0) ? i : i + 1;
                 break;
             }
-        if (index == -1) throw new string("Diag not exist");
-        return Mat[i][index];
+        if (index == -1) return 0;
+        return Mat[index][i];
     }
-
+    int size()
+    {
+        return n;
+    }
     void SetElement(int i, int j, double value)
     {
         int numDiag = j - i;
@@ -54,17 +61,18 @@ public:
         if (numDiag == 0)
         {
             while (Shift[k++] < 0);
-            Mat[i][k - 1] = value;
+            Mat[k - 1][i] = value;
+            return;
         }
         int index{ -1 };
         for (int i{ 0 }; i < Shift.size(); i++)
             if (numDiag == Shift[i])
             {
-                index = i;
+                index = (numDiag < 0) ? i : i + 1;
                 break;
             }
-        if (index == -1) throw new string("Diag not exist");
-        Mat[i][index] = value;
+        if (index == -1) return;//throw new string("Diag not exist");
+        Mat[index][i] = value;
     }
 };
 
@@ -72,36 +80,33 @@ struct Point
 {
     double X;
     double Y;
-    short int Type;
 
-    Point(double pointX, double pointY, short int type = Sham)
+    Point(double pointX, double pointY)
     {
         X = pointX;
         Y = pointY;
-        Type = type;
     }
     Point()
     {
         X = 0;
         Y = 0;
-        Type = Sham;
     }
 };
 
 class Name
 {
 private:
-    vector<vector<Point>> Grid; /*{ {Point(0,4),Point(1,4),Point(2,4),Point(3,4),Point(4,4)},
-                                   {Point(0,3),Point(1,3),Point(2,3),Point(3,3),Point(4,3)},
-                                   {Point(0,2),Point(1,2),Point(2,2),Point(3,2),Point(4,2)},
-                                   {Point(0,1),Point(1,1),Point(2,1),Point(3,1),Point(4,1)},
-                                   {Point(0,0),Point(1,0),Point(2,0),Point(3,0),Point(4,0)}};*/
+    vector<vector<Point>> Grid;
     vector<Point> Area = vector<Point>();
     vector<double> F = vector<double>();
-    //Matrix A;
-    vector<vector<double>> A = vector<vector<double>>();
+    Matrix A;
+    //vector<vector<double>> A = vector<vector<double>>();
     vector<double> U = vector<double>();
 public:
+    Name()
+    {
+
+    }
     double GetF(double x, double y)
     {
         return x;
@@ -198,7 +203,20 @@ public:
         }
         else
         {
-
+            double l{ xmax - xmin };
+            double m{ ymax - ymin };
+            const double pi{ 3.1415926535897932 };
+            for (int i{ ny }; i >= 0; i--)
+            {
+                vector<Point> tmp;
+                double y = (i == ny) ? ymax : m * (1 - cos(pi * i / (2 * ny)));
+                for (int j{ 0 }; j <= nx; j++)
+                {
+                    double x = (j == nx) ? xmax : l * (1 - cos(pi * j / (2 * nx)));
+                    tmp.push_back(Point(x, y));
+                }
+                Grid.push_back(tmp);
+            }
         }
         for (int i{ 0 }; i < Grid.size(); i++)
         {
@@ -263,15 +281,13 @@ public:
         return (total % 2 == 0) ? Sham : Inner;
     }
 
-    // Если перепрыгивает строку, думает, что все ок
     void GetMatrix()
     {
         int n = Grid.size();
         int level = 0;
         int count = (n - 2) * (Grid[0].size() - 2);
-        A.resize(count);
-        for (int i{ 0 }; i < A.size(); i++)
-            A[i].resize(count);
+        vector<int> shift = vector<int>{ -(int)Grid[0].size() + 2, -1, 1, (int)Grid[0].size() - 2 };
+        A = Matrix(count, 5, shift);
         F.resize(count);
         U.resize(count);
         for (int i{ 1 }; i < n - 1; i++)
@@ -285,48 +301,35 @@ public:
 
                 int index = GetNum(i, j, m);
                 cout << i << " " << j << endl;
-                A[level][index] = -(2 / (hx_j * hx_jp) + 2 / (hy_i * hy_ip)) + GetGamma(Grid[i][j].X, Grid[i][j].Y);
+                A.SetElement(level, index, -(2 / (hx_j * hx_jp) + 2 / (hy_i * hy_ip)) + GetGamma(Grid[i][j].X, Grid[i][j].Y));
 
                 index = GetNum(i, j - 1, m);
                 if (index > GetNum(i, 0, m))
-                    A[level][index] = 2 / (hx_jp * (hx_j + hx_jp));
+                    A.SetElement(level,index, 2 / (hx_jp * (hx_j + hx_jp)));
 
                 index = GetNum(i, j + 1, m);
                 if (index < GetNum(i, m - 1, m))
-                    A[level][index] = 2 / (hx_j * (hx_j + hx_jp));
+                    A.SetElement(level,index, 2 / (hx_j * (hx_j + hx_jp)));
 
                 index = GetNum(i + 1, j, m);
                 if (index < count)
-                    A[level][index] = 2 / (hy_ip * (hy_i + hy_ip));
+                    A.SetElement(level,index, 2 / (hy_ip * (hy_i + hy_ip)));
 
                 index = GetNum(i - 1, j, m);
                 if (index >= 0)
-                    A[level][index] = 2 / (hy_i * (hy_i + hy_ip));
+                    A.SetElement(level,index, 2 / (hy_i * (hy_i + hy_ip)));
 
 
                 F[level] = GetF(Grid[i][j].X, Grid[i][j].Y);
                 level++;
             }
         }
-        ofstream out("out.txt");
-        for (int i{ 0 }; i < A.size(); i++)
-        {
-            for (int j{ 0 }; j < A[i].size(); j++)
-                out << A[i][j] << "  ";
-            out << endl;
-        }
 
     }
 
     void SetBoundOne(string fileName)
     {
-        ifstream inputFile(fileName);
-        if (!inputFile.is_open()) throw string("File not found");
-        int number{ 0 };
-        //int start{ 0 }, end{ 0 };
-        double value{ 0 };
         int west{ 0 };
-
         int n = Grid.size();
         int level = 0;
         int count = A.size();
@@ -366,17 +369,17 @@ public:
 
                 if (type == Bound)
                 {
-                    for (int i{ 0 }; i < A[level].size(); i++)
-                        A[level][i] = 0;
-                    A[level][level] = 1;
+                    for (int i{ 0 }; i < A.size(); i++)
+                        A.SetElement(level, i, 0);
+                    A.SetElement(level, level, 1);
                     F[level] = GetBound(Grid[i][j].X, Grid[i][j].Y, west + 1);
                     // Занулить всю строку level, f[level] = value
                 }
                 if (type == Sham)
                 {
-                    for (int i{ 0 }; i < A[level].size(); i++)
-                        A[level][i] = 0;
-                    A[level][level] = 1;
+                    for (int i{ 0 }; i < A.size(); i++)
+                        A.SetElement(level, i, 0);
+                    A.SetElement(level, level, 1);
                     F[level] = 0;
                 }
                 level++;
@@ -387,8 +390,8 @@ public:
         ofstream out("out.txt");
         for (int i{ 0 }; i < A.size(); i++)
         {
-            for (int j{ 0 }; j < A[i].size(); j++)
-                out << A[i][j] << "  ";
+            for (int j{ 0 }; j < A.size(); j++)
+                out << A.GetElement(i,j) << "  ";
             out << endl;
         }
         out.close();
@@ -409,8 +412,7 @@ public:
 
     }
 
-    template <typename T>
-    double iteration(vector<vector<T>>& a, vector<T>& y0, vector<T>& y, const vector<T>& b, double w)
+    double iteration(Matrix& a, vector<double>& y0, vector<double>& y, const vector<double>& b, double w)
     {
         int n = a.size();
         double sum{ 0 }, sumdiscrepancy{ 0 }, discrepancy{ 0 };
@@ -419,22 +421,21 @@ public:
             double sum{ 0 };
             for (int j0{ 0 }; j0 < n; j0++)
             {
-                sum += a[i][j0] * y0[j0];
+                sum += a.GetElement(i,j0) * y0[j0];
             }
             discrepancy = b[i] - sum;
-            y[i] = y0[i] + (w / a[i][i]) * discrepancy;
+            y[i] = y0[i] + (w / a.GetElement(i,i)) * discrepancy;
             sumdiscrepancy += discrepancy * discrepancy;
         }
         sumdiscrepancy = sqrt(sumdiscrepancy);
         return sumdiscrepancy;
     }
 
-    template <typename T>
-    int jacobi(vector<vector<T>>& a, vector<double>& x_start, vector<double>& x, const vector<double>& b, double w, int max_it, double eps)
+    int jacobi(Matrix& a, vector<double>& x_start, vector<double>& x, const vector<double>& b, double w, int max_it, double eps)
     {
         int n = a.size();
         double eps_b{ 0 };
-        vector<T> x_t(n);
+        vector<double> x_t(n);
         for (int i{ 0 }; i < n; i++)
             x_t[i] = x_start[i];
         int i{ 1 };
@@ -460,9 +461,23 @@ public:
     void SolveSLAE(double w)
     {
         vector<double> xStart = vector<double>(A.size(), 0);
-        jacobi(A, xStart, U, F, w, 10000, 1e-6);
+        jacobi(A, xStart, U, F, w, 10000, 1e-11);
     }
-
+    void PrintResult(string fileName)
+    {
+        ofstream outputFile(fileName);
+        int n = Grid.size();
+        int level{ 0 };
+        for (int i{ 1 }; i < n - 1; i++)
+        {
+            int m = Grid[i].size();
+            for (int j{ 1 }; j < m - 1; j++)
+            {
+                outputFile << scientific << setprecision(16) << Grid[i][j].X << " " << Grid[i][j].Y << " " << U[level] << endl;
+                level++;
+            }
+        }
+    }
 };
 
 int main()
@@ -470,9 +485,10 @@ int main()
     Name a;
     //
     a.GetArea("area.txt");
-    a.GetGrid(5, 10);
+    a.GetGrid(5, 10, true);
     a.GetMatrix();
     a.SetBoundOne("bound1.txt");
     a.SolveSLAE(1);
+    a.PrintResult("result.txt");
     return 0;
 }

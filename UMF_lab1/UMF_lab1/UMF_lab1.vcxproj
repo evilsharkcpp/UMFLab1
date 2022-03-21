@@ -146,6 +146,7 @@
     <Text Include="bound1.txt" />
     <Text Include="f.txt" />
     <Text Include="out.txt" />
+    <Text Include="result.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
