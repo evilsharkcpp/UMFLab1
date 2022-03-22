@@ -108,7 +108,9 @@ public:
     }
     double GetF(double x, double y)
     {
-        return -12 * x * x - 12 * y * y + x * x * x * x + y * y * y * y;
+        return -12 * x * x + -12 * y * y + x * x * x * x + y * y * y * y;
+        //return x * x * x * x + y * y * y * y;
+        //return -4 + x * x + y * y;
     }
 
     double GetGamma(double x, double y)
@@ -123,6 +125,21 @@ public:
     double GetBound(double x, double y, int edge)
     {
         switch (edge)
+        {
+        case 1:
+            return y * y * y * y;
+            break;
+        case 2: 
+            return x * x * x * x + 1;
+            break;
+        case 3:
+            return 1 + y * y * y * y;
+            break;
+        case 4:
+            return x * x * x * x;
+            break;
+        }
+        /*switch (edge)
         {
         case 1:
             return 0 + y * y * y * y;
@@ -160,7 +177,7 @@ public:
         case 12:
             return x * x * x * x;
             break;
-        }
+        }*/
     }
     void GetArea(string fileName)
     {
@@ -300,23 +317,23 @@ public:
 
                 int index = GetNum(i, j, m);
                 cout << i << " " << j << endl;
-                A.SetElement(level, index, -(2 / (hx_j * hx_jp) + 2 / (hy_i * hy_ip)) + GetGamma(Grid[i][j].X, Grid[i][j].Y));
+                A.SetElement(level, index, (2 / (hx_j * hx_jp) + 2 / (hy_i * hy_ip)) + GetGamma(Grid[i][j].X, Grid[i][j].Y));
 
                 index = GetNum(i, j - 1, m);
                 if (index > GetNum(i, 0, m))
-                    A.SetElement(level,index, 2 / (hx_jp * (hx_j + hx_jp)));
+                    A.SetElement(level,index, -2 / (hx_jp * (hx_j + hx_jp)));
 
                 index = GetNum(i, j + 1, m);
                 if (index < GetNum(i, m - 1, m))
-                    A.SetElement(level,index, 2 / (hx_j * (hx_j + hx_jp)));
+                    A.SetElement(level,index, -2 / (hx_j * (hx_j + hx_jp)));
 
                 index = GetNum(i + 1, j, m);
                 if (index < count)
-                    A.SetElement(level,index, 2 / (hy_ip * (hy_i + hy_ip)));
+                    A.SetElement(level,index, -2 / (hy_ip * (hy_i + hy_ip)));
 
                 index = GetNum(i - 1, j, m);
                 if (index >= 0)
-                    A.SetElement(level,index, 2 / (hy_i * (hy_i + hy_ip)));
+                    A.SetElement(level,index, -2 / (hy_i * (hy_i + hy_ip)));
 
 
                 F[level] = GetF(Grid[i][j].X, Grid[i][j].Y);
@@ -346,22 +363,22 @@ public:
                 int index = GetNum(i, j - 1, m);
                 int type = GetType(Grid[i][j - 1], west);
                 if (index <= GetNum(i, 0, m) && type == Bound)
-                    F[level] += -2 * GetBound(Grid[i][j - 1].X, Grid[i][j - 1].Y, west + 1) / (hx_jp * (hx_j + hx_jp));
+                    F[level] += 2 * GetBound(Grid[i][j - 1].X, Grid[i][j - 1].Y, west + 1) / (hx_jp * (hx_j + hx_jp));
 
                 index = GetNum(i, j + 1, m);
                 type = GetType(Grid[i][j + 1], west);
                 if (index >= GetNum(i, m - 1, m) && type == Bound)
-                    F[level] += -2 * GetBound(Grid[i][j + 1].X, Grid[i][j + 1].Y, west + 1) / (hx_j * (hx_j + hx_jp));
+                    F[level] += 2 * GetBound(Grid[i][j + 1].X, Grid[i][j + 1].Y, west + 1) / (hx_j * (hx_j + hx_jp));
 
                 index = GetNum(i - 1, j, m);
                 type = GetType(Grid[i - 1][j], west);
-                if (index <= 0 && type == Bound)
-                    F[level] += -2 * GetBound(Grid[i - 1][j].X, Grid[i - 1][j].Y, west + 1) / (hy_i * (hy_i + hy_ip));
+                if (index < 0 && type == Bound)
+                    F[level] += 2 * GetBound(Grid[i - 1][j].X, Grid[i - 1][j].Y, west + 1) / (hy_i * (hy_i + hy_ip));
 
                 index = GetNum(i + 1, j, m);
                 type = GetType(Grid[i + 1][j], west);
                 if (index >= count && type == Bound)
-                    F[level] += -2 * GetBound(Grid[i + 1][j].X, Grid[i + 1][j].Y, west + 1) / (hy_ip * (hy_i + hy_ip));
+                    F[level] += 2 * GetBound(Grid[i + 1][j].X, Grid[i + 1][j].Y, west + 1) / (hy_ip * (hy_i + hy_ip));
 
                 index = GetNum(i, j, m);
                 type = GetType(Grid[i][j], west);
@@ -460,7 +477,7 @@ public:
     void SolveSLAE(double w)
     {
         vector<double> xStart = vector<double>(A.size(), 0);
-        jacobi(A, xStart, U, F, w, 1000, 1e-8);
+        jacobi(A, xStart, U, F, w, 1000, 1e-15);
     }
     void PrintResult(string fileName)
     {
@@ -484,7 +501,7 @@ int main()
     Name a;
     //
     a.GetArea("area.txt");
-    a.GetGrid(28, 28, true);
+    a.GetGrid(16, 16, true);
     a.GetMatrix();
     a.SetBoundOne("bound1.txt");
     a.SolveSLAE(1);

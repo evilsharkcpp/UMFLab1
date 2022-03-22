@@ -1,10 +1,10 @@
 ﻿  main.cpp
-C:\Users\asaul\Documents\GitHub\UMFLab1\UMF_lab1\UMF_lab1\main.cpp(285,1): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
-C:\Users\asaul\Documents\GitHub\UMFLab1\UMF_lab1\UMF_lab1\main.cpp(287,1): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
-C:\Users\asaul\Documents\GitHub\UMFLab1\UMF_lab1\UMF_lab1\main.cpp(294,1): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
-C:\Users\asaul\Documents\GitHub\UMFLab1\UMF_lab1\UMF_lab1\main.cpp(332,1): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
-C:\Users\asaul\Documents\GitHub\UMFLab1\UMF_lab1\UMF_lab1\main.cpp(337,1): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
-C:\Users\asaul\Documents\GitHub\UMFLab1\UMF_lab1\UMF_lab1\main.cpp(468,1): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
-C:\Users\asaul\Documents\GitHub\UMFLab1\UMF_lab1\UMF_lab1\main.cpp(472,1): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
-C:\Users\asaul\Documents\GitHub\UMFLab1\UMF_lab1\UMF_lab1\main.cpp(164): warning C4715: Name::GetBound: значение возвращается не при всех путях выполнения
+C:\Users\asaul\Documents\GitHub\UMFLab1\UMF_lab1\UMF_lab1\main.cpp(302,1): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Users\asaul\Documents\GitHub\UMFLab1\UMF_lab1\UMF_lab1\main.cpp(304,1): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Users\asaul\Documents\GitHub\UMFLab1\UMF_lab1\UMF_lab1\main.cpp(311,1): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Users\asaul\Documents\GitHub\UMFLab1\UMF_lab1\UMF_lab1\main.cpp(349,1): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Users\asaul\Documents\GitHub\UMFLab1\UMF_lab1\UMF_lab1\main.cpp(354,1): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Users\asaul\Documents\GitHub\UMFLab1\UMF_lab1\UMF_lab1\main.cpp(485,1): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Users\asaul\Documents\GitHub\UMFLab1\UMF_lab1\UMF_lab1\main.cpp(489,1): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Users\asaul\Documents\GitHub\UMFLab1\UMF_lab1\UMF_lab1\main.cpp(181): warning C4715: Name::GetBound: значение возвращается не при всех путях выполнения
   UMF_lab1.vcxproj -> C:\Users\asaul\Documents\GitHub\UMFLab1\UMF_lab1\x64\Debug\UMF_lab1.exe
