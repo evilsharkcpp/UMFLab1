@@ -100,7 +100,6 @@ private:
     vector<Point> Area = vector<Point>();
     vector<double> F = vector<double>();
     Matrix A;
-    //vector<vector<double>> A = vector<vector<double>>();
     vector<double> U = vector<double>();
 public:
     Name()
@@ -109,7 +108,7 @@ public:
     }
     double GetF(double x, double y)
     {
-        return x;
+        return -12 * x * x - 12 * y * y + x * x * x * x + y * y * y * y;
     }
 
     double GetGamma(double x, double y)
@@ -119,47 +118,47 @@ public:
 
     double GetLambda(double x, double y)
     {
-        return 0;
+        return 1;
     }
     double GetBound(double x, double y, int edge)
     {
         switch (edge)
         {
         case 1:
-            return 0;
+            return 0 + y * y * y * y;
             break;
         case 2:
-            return x;
+            return x * x * x * x + 1;
             break;
         case 3:
-            return 1;
+            return 1 + y * y * y * y;
             break;
         case 4:
-            return x;
+            return x * x * x * x + 0.5 * 0.5 * 0.5 * 0.5;
             break;
         case 5:
-            return 2;
+            return 2 * 2 * 2 * 2 + y * y * y * y;
             break;
         case 6:
-            return x;
+            return x * x * x * x + 1;
             break;
         case 7:
-            return 3;
+            return 3 * 3 * 3 * 3 + y * y * y * y;
             break;
         case 8:
-            return x;
+            return x * x * x * x + 0.5 * 0.5 * 0.5 * 0.5;
             break;
         case 9:
-            return 4;
+            return 4 * 4 * 4 * 4 + y * y * y * y;
             break;
         case 10:
-            return x;
+            return x * x * x * x + 1;
             break;
         case 11:
-            return 5;
+            return 5 * 5 * 5 * 5 + y * y * y * y;
             break;
         case 12:
-            return x;
+            return x * x * x * x;
             break;
         }
     }
@@ -453,15 +452,15 @@ public:
         } while (i <= max_it && eps_b > eps);
         if (i > max_it) cout << "max iteration reached" << endl;
         else cout << "Ja:discrepancy " << discrepancy << endl;
-        for (int i{ 0 }; i < 10; i++)
-            cout << endl;
+        //for (int i{ 0 }; i < 10; i++)
+            //cout << endl;
         return i;
     }
 
     void SolveSLAE(double w)
     {
         vector<double> xStart = vector<double>(A.size(), 0);
-        jacobi(A, xStart, U, F, w, 10000, 1e-11);
+        jacobi(A, xStart, U, F, w, 1000, 1e-8);
     }
     void PrintResult(string fileName)
     {
@@ -485,7 +484,7 @@ int main()
     Name a;
     //
     a.GetArea("area.txt");
-    a.GetGrid(5, 10, true);
+    a.GetGrid(28, 28, true);
     a.GetMatrix();
     a.SetBoundOne("bound1.txt");
     a.SolveSLAE(1);
