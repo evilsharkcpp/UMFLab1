@@ -54,6 +54,10 @@ public:
     {
         return n;
     }
+    vector<int> GetShift()
+    {
+        return Shift;
+    }
     void SetElement(int i, int j, double value)
     {
         int numDiag = j - i;
@@ -311,7 +315,7 @@ public:
             int m = Grid[i].size();
             for (int j{ 1 }; j < m - 1; j++)
             {
-                // Ââåäåì ïåðåìåííûå:
+                // Ð’Ð²ÐµÐ´ÐµÐ¼ Ð¿ÐµÑ€ÐµÐ¼ÐµÐ½Ð½Ñ‹Ðµ:
                 double hx_j{ Grid[i][j + 1].X - Grid[i][j].X }, hx_jp{ Grid[i][j].X - Grid[i][j - 1].X };
                 double hy_i{ Grid[i - 1][j].Y - Grid[i][j].Y }, hy_ip{ Grid[i][j].Y - Grid[i + 1][j].Y };
 
@@ -340,6 +344,9 @@ public:
                 level++;
             }
         }
+        ofstream out1("f.txt");
+        for (int i{ 0 }; i < F.size(); i++)
+            out1 << F[i] << endl;
 
     }
 
@@ -389,7 +396,7 @@ public:
                         A.SetElement(level, i, 0);
                     A.SetElement(level, level, 1);
                     F[level] = GetBound(Grid[i][j].X, Grid[i][j].Y, west + 1);
-                    // Çàíóëèòü âñþ ñòðîêó level, f[level] = value
+                    // Ð—Ð°Ð½ÑƒÐ»Ð¸Ñ‚ÑŒ Ð²ÑÑŽ ÑÑ‚Ñ€Ð¾ÐºÑƒ level, f[level] = value
                 }
                 if (type == Sham)
                 {
@@ -411,10 +418,6 @@ public:
             out << endl;
         }
         out.close();
-        ofstream out1("f.txt");
-        for (int i{ 0 }; i < F.size(); i++)
-            out1 << F[i] << endl;
-
     }
 
     template <typename T>
@@ -432,12 +435,14 @@ public:
     {
         int n = a.size();
         double sum{ 0 }, sumdiscrepancy{ 0 }, discrepancy{ 0 };
+        vector<int> shift = A.GetShift();
         for (int i{ 0 }; i < n; i++)
         {
             double sum{ 0 };
-            for (int j0{ 0 }; j0 < n; j0++)
+            for (int j0{ 0 }; j0 < 5; j0++)
             {
-                sum += a.GetElement(i,j0) * y0[j0];
+                int j = (j0 == 2) ? 0 : shift[(j0 < 2) ? j0 : j0 - 1];
+                sum += a.GetElement(i, i + j) * y0[((i + j) >= 0 && i + j < n) ? i + j : 0];
             }
             discrepancy = b[i] - sum;
             y[i] = y0[i] + (w / a.GetElement(i,i)) * discrepancy;
@@ -477,7 +482,9 @@ public:
     void SolveSLAE(double w)
     {
         vector<double> xStart = vector<double>(A.size(), 0);
-        jacobi(A, xStart, U, F, w, 1000, 1e-15);
+        jacobi(A, xStart, U, F, w, 10000, 1e-16);
+        
+       
     }
     void PrintResult(string fileName)
     {
@@ -501,7 +508,7 @@ int main()
     Name a;
     //
     a.GetArea("area.txt");
-    a.GetGrid(16, 16, true);
+    a.GetGrid(32, 32, false);
     a.GetMatrix();
     a.SetBoundOne("bound1.txt");
     a.SolveSLAE(1);
