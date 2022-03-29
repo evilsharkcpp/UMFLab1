@@ -105,16 +105,36 @@ private:
     vector<double> F = vector<double>();
     Matrix A;
     vector<double> U = vector<double>();
+    vector<double> Utr = vector<double>();
 public:
     Name()
     {
 
     }
+
+    double GetUtr(double x, double y)
+    {
+        return pow(x, 4) + pow(y, 4);
+    }
+
     double GetF(double x, double y)
     {
         return -12 * x * x + -12 * y * y + x * x * x * x + y * y * y * y;
         //return x * x * x * x + y * y * y * y;
         //return -4 + x * x + y * y;
+        //return 0;
+    }
+
+    void sort(vector<double>& v)
+    {
+        for (int i{ 0 }; i < v.size(); i++)
+            for (int j{0};j < v.size();j++)
+                if (v[i] < v[j])
+                {
+                    auto tmp = v[i];
+                    v[i] = v[j];
+                    v[j] = tmp;
+                }
     }
 
     double GetGamma(double x, double y)
@@ -126,9 +146,11 @@ public:
     {
         return 1;
     }
+
     double GetBound(double x, double y, int edge)
     {
-        switch (edge)
+       // return 5;
+        /*switch (edge)
         {
         case 1:
             return y * y * y * y;
@@ -142,8 +164,8 @@ public:
         case 4:
             return x * x * x * x;
             break;
-        }
-        /*switch (edge)
+        }*/
+        switch (edge)
         {
         case 1:
             return 0 + y * y * y * y;
@@ -181,8 +203,9 @@ public:
         case 12:
             return x * x * x * x;
             break;
-        }*/
+        }
     }
+
     void GetArea(string fileName)
     {
         ifstream inputFile(fileName);
@@ -194,11 +217,161 @@ public:
         }
     }
 
-    void GetGrid(int nx, int ny, bool gridType = true)
+    void DevGrid(double hx, double hy, bool gridType = true)
     {
         double xmax{ 0 }, ymax{ 0 }, xmin{ Area[0].X }, ymin{ Area[0].Y };
+        vector<double> xi, yi;
         for (int i{ 0 }; i < Area.size(); i++)
         {
+            if (xi.empty()) xi.push_back(Area[i].X);
+            else
+            {
+                bool isContain = false;
+                for (int k{ 0 }; k < xi.size(); k++)
+                {
+                    if (xi[k] == Area[i].X) { isContain = true; break; }
+                }
+                if (!isContain) xi.push_back(Area[i].X);
+            }
+            if (yi.empty()) yi.push_back(Area[i].Y);
+            else
+            {
+                bool isContain = false;
+                for (int k{ 0 }; k < yi.size(); k++)
+                {
+                    if (yi[k] == Area[i].Y) { isContain = true; break; }
+                }
+                if (!isContain) yi.push_back(Area[i].Y);
+            }
+            if (Area[i].X > xmax) xmax = Area[i].X;
+            if (Area[i].X < xmin) xmin = Area[i].X;
+            if (Area[i].Y > ymax) ymax = Area[i].Y;
+            if (Area[i].Y < ymin) ymin = Area[i].Y;
+        }
+        if (gridType)
+        {
+            double l{ xmax - xmin };
+            double m{ ymax - ymin };
+            int j{ 0 };
+            int i{ 0 };
+            while (ymin + (double)i / hy < ymax)
+            {
+                vector<Point> tmp;
+                j = 0;
+                while (xmin + (double)j / hx < xmax)
+                {
+                    tmp.push_back(Point(xmin + (double)j / hx, ymin + (double)i / hy));
+                    j++;
+                }
+                tmp.push_back(Point(xmax, ymin + (double)i  / hy));
+                Grid.insert(Grid.begin(), tmp);
+                i++;
+            }
+            vector<Point> tmp;
+            j = 0;
+            while (xmin + (double)j / hx < xmax)
+            {
+                tmp.push_back(Point(xmin + (double)j / hx, ymax));
+                j++;
+            }
+            tmp.push_back(Point(xmax, ymax));
+            Grid.insert(Grid.begin(), tmp);
+        }
+        else
+        {
+            int nx = hx, ny = hy;
+            sort(xi);
+            sort(yi);
+            double l{ xmax - xmin };
+            double m{ ymax - ymin };
+            const double pi{ 3.1415926535897932 };
+            int shifty = yi.size() - 2;
+            for (int i{ ny }; i >= 0; i--)
+            {
+                vector<Point> tmp;
+                double y = (i == ny) ? ymax : m * (1 - cos(pi * i / (2 * ny)));
+                double yt = (i == ny) ? ymax : m * (1 - cos(pi * (i - 1) / (2 * ny)));
+                int shiftx = 1;
+                if (y > yi[shifty] && yt < yi[shifty])
+                {
+                    for (int j{ 0 }; j <= nx; j++)
+                    {
+                        double x = (j == nx) ? xmax : l * (1 - cos(pi * j / (2 * nx)));
+                        double xt{ (j == nx) ? xmax : l * (1 - cos(pi * (j + 1) / (2 * nx))) };
+                        if (x < xi[shiftx] && xt > xi[shiftx])
+                        {
+                            tmp.push_back(Point(x, y));
+                            tmp.push_back(Point(xi[shiftx++], y));
+                        }
+                        else
+                            tmp.push_back(Point(x, y));
+                    }
+                    Grid.push_back(tmp);
+                    tmp.resize(0);
+                    y = yi[shifty--];
+                    shiftx = 1;
+                    for (int j{ 0 }; j <= nx; j++)
+                    {
+                        double x = (j == nx) ? xmax : l * (1 - cos(pi * j / (2 * nx)));
+                        double xt{ (j == nx) ? xmax : l * (1 - cos(pi * (j + 1) / (2 * nx))) };
+                        if (x < xi[shiftx] && xt > xi[shiftx])
+                        {
+                            tmp.push_back(Point(x, y));
+                            tmp.push_back(Point(xi[shiftx++], y));
+                        }
+                        else
+                            tmp.push_back(Point(x, y));
+                    }
+                    Grid.push_back(tmp);
+
+                }
+                else
+                {
+                    for (int j{ 0 }; j <= nx; j++)
+                    {
+                        double x = (j == nx) ? xmax : l * (1 - cos(pi * j / (2 * nx)));
+                        double xt{ (j == nx) ? xmax : l * (1 - cos(pi * (j + 1) / (2 * nx))) };
+                        if (x < xi[shiftx] && xt > xi[shiftx])
+                        {
+                            tmp.push_back(Point(x, y));
+                            tmp.push_back(Point(xi[shiftx++], y));
+                        }
+                        else
+                            tmp.push_back(Point(x, y));
+                    }
+                    Grid.push_back(tmp);
+                }
+
+            }
+        }
+    }
+
+    /*void GetGrid(int nx, int ny, bool gridType = true)
+    {
+        double xmax{ 0 }, ymax{ 0 }, xmin{ Area[0].X }, ymin{ Area[0].Y };
+        vector<double> xi, yi;
+        for (int i{ 0 }; i < Area.size(); i++)
+        {
+            if (xi.empty()) xi.push_back(Area[i].X);
+            else
+            {
+                bool isContain = false;
+                for (int k{ 0 }; k < xi.size(); k++)
+                {
+                    if (xi[k] == Area[i].X) { isContain = true; break; }
+                }
+                if (!isContain) xi.push_back(Area[i].X);
+            }
+            if (yi.empty()) yi.push_back(Area[i].Y);
+            else
+            {
+                bool isContain = false;
+                for (int k{ 0 }; k < yi.size(); k++)
+                {
+                    if (yi[k] == Area[i].Y) { isContain = true; break; }
+                }
+                if (!isContain) yi.push_back(Area[i].Y);
+            }
             if (Area[i].X > xmax) xmax = Area[i].X;
             if (Area[i].X < xmin) xmin = Area[i].X;
             if (Area[i].Y > ymax) ymax = Area[i].Y;
@@ -223,19 +396,68 @@ public:
         }
         else
         {
+            sort(xi);
+            sort(yi);
             double l{ xmax - xmin };
             double m{ ymax - ymin };
             const double pi{ 3.1415926535897932 };
+            int shifty = yi.size() - 2;
             for (int i{ ny }; i >= 0; i--)
             {
                 vector<Point> tmp;
                 double y = (i == ny) ? ymax : m * (1 - cos(pi * i / (2 * ny)));
-                for (int j{ 0 }; j <= nx; j++)
+                double yt = (i == ny) ? ymax : m * (1 - cos(pi * (i - 1) / (2 * ny)));
+                int shiftx = 1;
+                if (y > yi[shifty] && yt < yi[shifty])
                 {
-                    double x = (j == nx) ? xmax : l * (1 - cos(pi * j / (2 * nx)));
-                    tmp.push_back(Point(x, y));
+                    for (int j{ 0 }; j <= nx; j++)
+                    {
+                        double x = (j == nx) ? xmax : l * (1 - cos(pi * j / (2 * nx)));
+                        double xt{ (j == nx) ? xmax : l * (1 - cos(pi * (j + 1) / (2 * nx))) };
+                        if (x < xi[shiftx] && xt > xi[shiftx])
+                        {
+                            tmp.push_back(Point(x, y));
+                            tmp.push_back(Point(xi[shiftx++], y));
+                        }
+                        else
+                            tmp.push_back(Point(x, y));
+                    }
+                    Grid.push_back(tmp);
+                    tmp.resize(0);
+                    y = yi[shifty--];
+                    shiftx = 1;
+                    for (int j{ 0 }; j <= nx; j++)
+                    {
+                        double x = (j == nx) ? xmax : l * (1 - cos(pi * j / (2 * nx)));
+                        double xt{ (j == nx) ? xmax : l * (1 - cos(pi * (j + 1) / (2 * nx))) };
+                        if (x < xi[shiftx] && xt > xi[shiftx])
+                        {
+                            tmp.push_back(Point(x, y));
+                            tmp.push_back(Point(xi[shiftx++], y));
+                        }
+                        else
+                            tmp.push_back(Point(x, y));
+                    }
+                    Grid.push_back(tmp);
+
                 }
-                Grid.push_back(tmp);
+                else
+                {
+                    for (int j{ 0 }; j <= nx; j++)
+                    {
+                        double x = (j == nx) ? xmax : l * (1 - cos(pi * j / (2 * nx)));
+                        double xt{ (j == nx) ? xmax : l * (1 - cos(pi * (j + 1) / (2 * nx))) };
+                        if (x < xi[shiftx] && xt > xi[shiftx])
+                        {
+                            tmp.push_back(Point(x, y));
+                            tmp.push_back(Point(xi[shiftx++], y));
+                        }
+                        else
+                            tmp.push_back(Point(x, y));
+                    }
+                    Grid.push_back(tmp);
+                }
+                
             }
         }
         for (int i{ 0 }; i < Grid.size(); i++)
@@ -245,7 +467,7 @@ public:
                 cout << Grid[i][j].X << "  ";
             cout << endl;
         }
-    }
+    }*/
 
     int GetNum(int i, int j, int count)
     {
@@ -310,6 +532,7 @@ public:
         A = Matrix(count, 5, shift);
         F.resize(count);
         U.resize(count);
+        int west{ 0 };
         for (int i{ 1 }; i < n - 1; i++)
         {
             int m = Grid[i].size();
@@ -318,39 +541,56 @@ public:
                 // Введем переменные:
                 double hx_j{ Grid[i][j + 1].X - Grid[i][j].X }, hx_jp{ Grid[i][j].X - Grid[i][j - 1].X };
                 double hy_i{ Grid[i - 1][j].Y - Grid[i][j].Y }, hy_ip{ Grid[i][j].Y - Grid[i + 1][j].Y };
-
+                //i,j
                 int index = GetNum(i, j, m);
                 cout << i << " " << j << endl;
                 A.SetElement(level, index, (2 / (hx_j * hx_jp) + 2 / (hy_i * hy_ip)) + GetGamma(Grid[i][j].X, Grid[i][j].Y));
-
+                
+                //j - 1
                 index = GetNum(i, j - 1, m);
                 if (index > GetNum(i, 0, m))
-                    A.SetElement(level,index, -2 / (hx_jp * (hx_j + hx_jp)));
+                    A.SetElement(level, index, -2 / (hx_jp * (hx_j + hx_jp)));
+                else
+                {
+                    if (GetType(Grid[i][j - 1], west) == Bound)
+                        F[level] += 2 * GetBound(Grid[i][j - 1].X, Grid[i][j - 1].Y, west + 1) / (hx_jp * (hx_j + hx_jp));
+                }
 
+                // j + 1
                 index = GetNum(i, j + 1, m);
                 if (index < GetNum(i, m - 1, m))
-                    A.SetElement(level,index, -2 / (hx_j * (hx_j + hx_jp)));
-
+                    A.SetElement(level, index, -2 / (hx_j * (hx_j + hx_jp)));
+                else
+                {
+                    if (GetType(Grid[i][j + 1], west) == Bound)
+                        F[level] += 2 * GetBound(Grid[i][j + 1].X, Grid[i][j + 1].Y, west + 1) / (hx_j * (hx_j + hx_jp));
+                }
+                // i + 1
                 index = GetNum(i + 1, j, m);
                 if (index < count)
-                    A.SetElement(level,index, -2 / (hy_ip * (hy_i + hy_ip)));
-
+                    A.SetElement(level, index, -2 / (hy_ip * (hy_i + hy_ip)));
+                else
+                {
+                    if (GetType(Grid[i + 1][j], west) == Bound)
+                        F[level] += 2 * GetBound(Grid[i + 1][j].X, Grid[i + 1][j].Y, west + 1) / (hy_ip * (hy_i + hy_ip));
+                }
+                //i-1
                 index = GetNum(i - 1, j, m);
                 if (index >= 0)
-                    A.SetElement(level,index, -2 / (hy_i * (hy_i + hy_ip)));
+                    A.SetElement(level, index, -2 / (hy_i * (hy_i + hy_ip)));
+                else
+                {
+                    if (GetType(Grid[i - 1][j], west) == Bound)
+                        F[level] += 2 * GetBound(Grid[i - 1][j].X, Grid[i - 1][j].Y, west + 1) / (hy_i * (hy_i + hy_ip));
+                }
 
-
-                F[level] = GetF(Grid[i][j].X, Grid[i][j].Y);
+                F[level]+= GetF(Grid[i][j].X, Grid[i][j].Y);
                 level++;
             }
         }
-        ofstream out1("f.txt");
-        for (int i{ 0 }; i < F.size(); i++)
-            out1 << F[i] << endl;
-
     }
-
-    void SetBoundOne(string fileName)
+   
+    void SetBoundOne()
     {
         int west{ 0 };
         int n = Grid.size();
@@ -361,34 +601,7 @@ public:
             int m = Grid[i].size();
             for (int j{ 1 }; j < m - 1; j++)
             {
-                double hx_j{ Grid[i][j + 1].X - Grid[i][j].X }, hx_jp{ Grid[i][j].X - Grid[i][j - 1].X };
-                double hy_i{ Grid[i - 1][j].Y - Grid[i][j].Y }, hy_ip{ Grid[i][j].Y - Grid[i + 1][j].Y };
-
-
-                // Check i-1, i+1, j-1, j+1
-
-                int index = GetNum(i, j - 1, m);
-                int type = GetType(Grid[i][j - 1], west);
-                if (index <= GetNum(i, 0, m) && type == Bound)
-                    F[level] += 2 * GetBound(Grid[i][j - 1].X, Grid[i][j - 1].Y, west + 1) / (hx_jp * (hx_j + hx_jp));
-
-                index = GetNum(i, j + 1, m);
-                type = GetType(Grid[i][j + 1], west);
-                if (index >= GetNum(i, m - 1, m) && type == Bound)
-                    F[level] += 2 * GetBound(Grid[i][j + 1].X, Grid[i][j + 1].Y, west + 1) / (hx_j * (hx_j + hx_jp));
-
-                index = GetNum(i - 1, j, m);
-                type = GetType(Grid[i - 1][j], west);
-                if (index < 0 && type == Bound)
-                    F[level] += 2 * GetBound(Grid[i - 1][j].X, Grid[i - 1][j].Y, west + 1) / (hy_i * (hy_i + hy_ip));
-
-                index = GetNum(i + 1, j, m);
-                type = GetType(Grid[i + 1][j], west);
-                if (index >= count && type == Bound)
-                    F[level] += 2 * GetBound(Grid[i + 1][j].X, Grid[i + 1][j].Y, west + 1) / (hy_ip * (hy_i + hy_ip));
-
-                index = GetNum(i, j, m);
-                type = GetType(Grid[i][j], west);
+                int type = GetType(Grid[i][j], west);
 
                 if (type == Bound)
                 {
@@ -418,6 +631,9 @@ public:
             out << endl;
         }
         out.close();
+        ofstream out1("f.txt");
+        for (int i{ 0 }; i < F.size(); i++)
+            out1 << scientific << setprecision(16) << F[i] << endl;
     }
 
     template <typename T>
@@ -481,24 +697,37 @@ public:
 
     void SolveSLAE(double w)
     {
-        vector<double> xStart = vector<double>(A.size(), 0);
-        jacobi(A, xStart, U, F, w, 10000, 1e-16);
+        vector<double> xStart = vector<double>(A.size(), 1);
+        jacobi(A, xStart, U, F, w, 10000, 1e-14);
         
        
     }
+
     void PrintResult(string fileName)
     {
         ofstream outputFile(fileName);
         int n = Grid.size();
+        Utr.resize(A.size());
         int level{ 0 };
         for (int i{ 1 }; i < n - 1; i++)
         {
             int m = Grid[i].size();
             for (int j{ 1 }; j < m - 1; j++)
             {
+                Utr[level] = GetUtr(Grid[i][j].X, Grid[i][j].Y);
                 outputFile << scientific << setprecision(16) << Grid[i][j].X << " " << Grid[i][j].Y << " " << U[level] << endl;
                 level++;
             }
+        }
+        ofstream out("f_true.txt");
+        for (int i{ 0 }; i < A.size(); i++)
+        {
+            double sum = 0;
+            for (int j{ 0 }; j < A.size(); j++)
+            {
+                sum += A.GetElement(i, j) * Utr[j];
+            }
+            out << scientific << setprecision(16) << sum << endl;
         }
     }
 };
@@ -508,9 +737,10 @@ int main()
     Name a;
     //
     a.GetArea("area.txt");
-    a.GetGrid(32, 32, false);
+    a.DevGrid(24, 24, false);
+    //a.GetGrid(10,4, false);
     a.GetMatrix();
-    a.SetBoundOne("bound1.txt");
+    a.SetBoundOne();
     a.SolveSLAE(1);
     a.PrintResult("result.txt");
     return 0;

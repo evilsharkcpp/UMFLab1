@@ -35,5 +35,8 @@
     <Text Include="result.txt">
       <Filter>Файлы ресурсов</Filter>
     </Text>
+    <Text Include="f_true.txt">
+      <Filter>Файлы ресурсов</Filter>
+    </Text>
   </ItemGroup>
 </Project>

@@ -145,6 +145,7 @@
     <Text Include="area.txt" />
     <Text Include="bound1.txt" />
     <Text Include="f.txt" />
+    <Text Include="f_true.txt" />
     <Text Include="out.txt" />
     <Text Include="result.txt" />
   </ItemGroup>
